@@ -5,28 +5,28 @@ const { ERROR_BAD_REQUEST_CODE, ERROR_NOT_FOUND, ERROR_DEFAULT } = require('../e
 const getUsers = (req, res) => {
   User.find({})
     .then((users) => res.status(200).send(users))
-    .catch(() => res.status(ERROR_DEFAULT).send({ message: 'На сервере произошла ошибка.' }));
+    .catch(() => res
+      .status(ERROR_DEFAULT)
+      .send({ message: 'На сервере произошла ошибка.' }));
 };
 
 // Получить данные о пользователе по userId
 const getUser = (req, res) => {
-  User
-    .findById(req.params.id)
-    .then((user) => {
-      if (!user) {
-        res
-          .status(ERROR_NOT_FOUND)
-          .send({ message: 'Пользователь с указанным _id не найден.' });
-      }
-      res.status(200).send(user);
-    })
+  User.findById(req.params.id)
+    .orFail(() => new Error('Not found'))
+    .then((user) => res.status(200).send(user))
     .catch((err) => {
       if (err.name === 'CastError') {
         res
           .status(ERROR_BAD_REQUEST_CODE)
           .send({ message: 'Получение пользователя с некорректным id.' });
+      } else if (err.message === 'Not found') {
+        res
+          .status(ERROR_NOT_FOUND)
+          .send({ message: 'Пользователь с указанным _id не найден.' });
+      } else {
+        res.status(ERROR_DEFAULT).send({ message: 'На сервере произошла ошибка.' });
       }
-      res.status(ERROR_DEFAULT).send({ message: 'На сервере произошла ошибка.' });
     });
 };
 
@@ -53,19 +53,17 @@ const updateUser = (req, res) => {
   const id = req.user._id;
 
   User.findByIdAndUpdate(id, { name, about }, { new: true, runValidators: true })
-    .then((user) => {
-      if (!user) {
-        res
-          .status(ERROR_NOT_FOUND)
-          .send({ massage: 'Пользователь с указанным _id не найден.' });
-      }
-      res.status(200).send(user);
-    })
+    .orFail(() => new Error('Not found'))
+    .then((user) => res.status(200).send(user))
     .catch((err) => {
       if (err.name === 'ValidationError') {
         res
           .status(ERROR_BAD_REQUEST_CODE)
           .send({ message: 'Переданы некорректные данные при обновлении профиля.' });
+      } else if (err.message === 'Not found') {
+        res
+          .status(ERROR_NOT_FOUND)
+          .send({ message: 'Пользователь с указанным _id не найден.' });
       } else {
         res.status(ERROR_DEFAULT).send({ message: 'На сервере произошла ошибка.' });
       }
@@ -78,19 +76,17 @@ const updateAvatar = (req, res) => {
   const id = req.user._id;
 
   User.findByIdAndUpdate(id, { avatar }, { new: true })
-    .then((user) => {
-      if (!user) {
-        res
-          .status(ERROR_NOT_FOUND)
-          .send({ message: 'Пользователь с указанным _id не найден.' });
-      }
-      res.status(200).send(user);
-    })
+    .orFail(() => new Error('Not found'))
+    .then((user) => res.status(200).send(user))
     .catch((err) => {
       if (err.name === 'ValidationError') {
         res
           .status(ERROR_BAD_REQUEST_CODE)
           .send({ message: 'Переданы некорректные данные при обновлении аватара.' });
+      } else if (err.message === 'Not found') {
+        res
+          .status(ERROR_NOT_FOUND)
+          .send({ message: 'Пользователь с указанным _id не найден.' });
       } else {
         res.status(ERROR_DEFAULT).send({ message: 'На сервере произошла ошибка.' });
       }
