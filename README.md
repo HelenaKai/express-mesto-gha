@@ -38,6 +38,5 @@ Express, Node.js, MongoDB, Postman, Eslint, JWT
 `npm run start` — запускает сервер   
 `npm run dev` — запускает сервер с hot-reload
 
-## Репозиторий
 
 https://github.com/HelenaKai/express-mesto-gha
